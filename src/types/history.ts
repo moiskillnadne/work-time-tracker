@@ -15,7 +15,9 @@ export interface HistoryEntry {
   taskId: TaskId;
   /** Amount of time saved in milliseconds */
   duration: number;
-  /** ISO timestamp when the time was saved */
+  /** ISO timestamp when this time segment started */
+  startedAt: string;
+  /** ISO timestamp when the entry was saved */
   savedAt: string;
 }
 

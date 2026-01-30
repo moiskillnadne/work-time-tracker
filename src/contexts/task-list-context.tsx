@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { Task, TaskId, CreateTaskInput, UpdateTaskInput } from '@/types/task';
+import type { TimeSegment } from '@/types/timer';
 import {
   loadTaskListState,
   saveTaskListState,
@@ -14,7 +15,7 @@ import {
   type PersistedTaskListState,
 } from '@/lib/task-storage';
 import {
-  addHistoryEntry,
+  addHistoryEntriesFromSegments,
   deleteTaskHistory,
   clearHistoryState,
 } from '@/lib/history-storage';
@@ -33,7 +34,7 @@ interface TaskListContextValue {
   deleteTask: (id: TaskId) => void;
   selectTask: (id: TaskId | null) => void;
   clearAllTasks: () => void;
-  incrementTaskTime: (id: TaskId, milliseconds: number) => void;
+  incrementTaskTime: (id: TaskId, milliseconds: number, segments: TimeSegment[]) => void;
   taskCount: number;
   hasSelectedTask: boolean;
 }
@@ -154,32 +155,35 @@ export function TaskListProvider({ children }: TaskListProviderProps): ReactNode
     });
   }, [persistState]);
 
-  const incrementTaskTime = useCallback((id: TaskId, milliseconds: number): void => {
-    addHistoryEntry(id, milliseconds);
+  const incrementTaskTime = useCallback(
+    (id: TaskId, milliseconds: number, segments: TimeSegment[]): void => {
+      addHistoryEntriesFromSegments(id, segments);
 
-    setState((prev) => {
-      const taskIndex = prev.tasks.findIndex((t) => t.id === id);
-      if (taskIndex === -1) {
-        return prev;
-      }
+      setState((prev) => {
+        const taskIndex = prev.tasks.findIndex((t) => t.id === id);
+        if (taskIndex === -1) {
+          return prev;
+        }
 
-      const updatedTask: Task = {
-        ...prev.tasks[taskIndex],
-        elapsedTime: prev.tasks[taskIndex].elapsedTime + milliseconds,
-        updatedAt: new Date().toISOString(),
-      };
+        const updatedTask: Task = {
+          ...prev.tasks[taskIndex],
+          elapsedTime: prev.tasks[taskIndex].elapsedTime + milliseconds,
+          updatedAt: new Date().toISOString(),
+        };
 
-      const newTasks = [...prev.tasks];
-      newTasks[taskIndex] = updatedTask;
+        const newTasks = [...prev.tasks];
+        newTasks[taskIndex] = updatedTask;
 
-      const newState: TaskListState = {
-        ...prev,
-        tasks: newTasks,
-      };
-      persistState(newState);
-      return newState;
-    });
-  }, [persistState]);
+        const newState: TaskListState = {
+          ...prev,
+          tasks: newTasks,
+        };
+        persistState(newState);
+        return newState;
+      });
+    },
+    [persistState]
+  );
 
   const clearAllTasks = useCallback((): void => {
     const newState: TaskListState = {

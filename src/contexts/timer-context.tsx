@@ -13,20 +13,20 @@ import {
   loadTimerState,
   saveTimerState,
   type PersistedTimerState,
-  type TimerStatus,
 } from '@/lib/timer-storage';
+import type { TimeSegment, TimerStatus } from '@/types/timer';
 
-export type { TimerStatus };
+export type { TimerStatus, TimeSegment };
 
 interface TimerState {
   status: TimerStatus;
-  startTimestamp: number | null;
-  accumulatedTime: number;
+  segments: TimeSegment[];
 }
 
 interface TimerContextValue {
   status: TimerStatus;
   elapsedTime: number;
+  segments: TimeSegment[];
   start: () => void;
   pause: () => void;
   reset: () => void;
@@ -37,11 +37,15 @@ interface TimerContextValue {
 
 const TimerContext = createContext<TimerContextValue | null>(null);
 
-function calculateElapsedTime(state: TimerState): number {
-  if (state.status !== 'running' || state.startTimestamp === null) {
-    return state.accumulatedTime;
-  }
-  return state.accumulatedTime + (Date.now() - state.startTimestamp);
+/**
+ * Calculates total elapsed time from segments
+ * For running segments (end === null), uses current time
+ */
+function calculateElapsedTime(segments: TimeSegment[]): number {
+  return segments.reduce((total, segment) => {
+    const end = segment.end ?? Date.now();
+    return total + (end - segment.start);
+  }, 0);
 }
 
 function recoverTimerState(): TimerState {
@@ -50,15 +54,13 @@ function recoverTimerState(): TimerState {
   if (!stored) {
     return {
       status: 'idle',
-      startTimestamp: null,
-      accumulatedTime: 0,
+      segments: [],
     };
   }
 
   return {
     status: stored.status,
-    startTimestamp: stored.startTimestamp,
-    accumulatedTime: stored.accumulatedTime,
+    segments: stored.segments,
   };
 }
 
@@ -69,7 +71,7 @@ interface TimerProviderProps {
 export function TimerProvider({ children }: TimerProviderProps): ReactNode {
   const [state, setState] = useState<TimerState>(recoverTimerState);
   const [elapsedTime, setElapsedTime] = useState<number>(() =>
-    calculateElapsedTime(recoverTimerState())
+    calculateElapsedTime(recoverTimerState().segments)
   );
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -77,18 +79,22 @@ export function TimerProvider({ children }: TimerProviderProps): ReactNode {
   const persistState = useCallback((newState: TimerState): void => {
     const toPersist: Omit<PersistedTimerState, 'lastUpdated'> = {
       status: newState.status,
-      startTimestamp: newState.startTimestamp,
-      accumulatedTime: newState.accumulatedTime,
+      segments: newState.segments,
     };
     saveTimerState(toPersist);
   }, []);
 
   const start = useCallback((): void => {
     setState((prev) => {
+      // Create a new segment with current time as start
+      const newSegment: TimeSegment = {
+        start: Date.now(),
+        end: null,
+      };
+
       const newState: TimerState = {
         status: 'running',
-        startTimestamp: Date.now(),
-        accumulatedTime: prev.accumulatedTime,
+        segments: [...prev.segments, newSegment],
       };
       persistState(newState);
       return newState;
@@ -97,15 +103,21 @@ export function TimerProvider({ children }: TimerProviderProps): ReactNode {
 
   const pause = useCallback((): void => {
     setState((prev) => {
-      if (prev.status !== 'running') {
+      if (prev.status !== 'running' || prev.segments.length === 0) {
         return prev;
       }
 
-      const currentElapsed = calculateElapsedTime(prev);
+      // Close the last segment by setting its end time
+      const lastIndex = prev.segments.length - 1;
+      const updatedSegments = prev.segments.map((segment, index) =>
+        index === lastIndex && segment.end === null
+          ? { ...segment, end: Date.now() }
+          : segment
+      );
+
       const newState: TimerState = {
         status: 'paused',
-        startTimestamp: null,
-        accumulatedTime: currentElapsed,
+        segments: updatedSegments,
       };
       persistState(newState);
       return newState;
@@ -115,28 +127,28 @@ export function TimerProvider({ children }: TimerProviderProps): ReactNode {
   const reset = useCallback((): void => {
     const newState: TimerState = {
       status: 'idle',
-      startTimestamp: null,
-      accumulatedTime: 0,
+      segments: [],
     };
     setState(newState);
     setElapsedTime(0);
     clearTimerState();
   }, []);
 
+  // Update elapsed time when running
   useEffect(() => {
     if (state.status !== 'running') {
       if (intervalRef.current !== null) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      setElapsedTime(state.accumulatedTime);
+      setElapsedTime(calculateElapsedTime(state.segments));
       return;
     }
 
-    setElapsedTime(calculateElapsedTime(state));
+    setElapsedTime(calculateElapsedTime(state.segments));
 
     intervalRef.current = setInterval(() => {
-      setElapsedTime(calculateElapsedTime(state));
+      setElapsedTime(calculateElapsedTime(state.segments));
     }, 1000);
 
     return () => {
@@ -145,34 +157,37 @@ export function TimerProvider({ children }: TimerProviderProps): ReactNode {
         intervalRef.current = null;
       }
     };
-  }, [state.status, state.startTimestamp, state.accumulatedTime]);
+  }, [state.status, state.segments]);
 
+  // Handle visibility change (tab becomes visible)
   useEffect(() => {
     const handleVisibilityChange = (): void => {
       if (document.visibilityState === 'visible' && state.status === 'running') {
-        setElapsedTime(calculateElapsedTime(state));
+        setElapsedTime(calculateElapsedTime(state.segments));
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [state]);
+  }, [state.status, state.segments]);
 
+  // Handle window focus
   useEffect(() => {
     const handleFocus = (): void => {
       if (state.status === 'running') {
-        setElapsedTime(calculateElapsedTime(state));
+        setElapsedTime(calculateElapsedTime(state.segments));
       }
     };
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [state]);
+  }, [state.status, state.segments]);
 
   const contextValue = useMemo<TimerContextValue>(
     () => ({
       status: state.status,
       elapsedTime,
+      segments: state.segments,
       start,
       pause,
       reset,
@@ -180,7 +195,7 @@ export function TimerProvider({ children }: TimerProviderProps): ReactNode {
       isPaused: state.status === 'paused',
       isIdle: state.status === 'idle',
     }),
-    [state.status, elapsedTime, start, pause, reset]
+    [state.status, state.segments, elapsedTime, start, pause, reset]
   );
 
   return <TimerContext.Provider value={contextValue}>{children}</TimerContext.Provider>;

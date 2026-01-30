@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useTaskListContext } from '@/contexts/task-list-context';
 import { formatTime } from '@/lib/utils';
 import type { Task, TaskId, CreateTaskInput, UpdateTaskInput } from '@/types/task';
+import type { TimeSegment } from '@/types/timer';
 
 interface TaskListCallbacks {
   onTaskAdded?: (task: Task) => void;
@@ -22,7 +23,7 @@ interface UseTaskListReturn {
   deleteTask: (id: TaskId) => void;
   selectTask: (id: TaskId | null) => void;
   clearAllTasks: () => void;
-  incrementTaskTime: (id: TaskId, milliseconds: number) => void;
+  incrementTaskTime: (id: TaskId, milliseconds: number, segments: TimeSegment[]) => void;
   taskCount: number;
   hasSelectedTask: boolean;
   isEmpty: boolean;

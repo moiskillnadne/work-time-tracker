@@ -1,9 +1,8 @@
-export type TimerStatus = 'idle' | 'running' | 'paused';
+import type { TimeSegment, TimerStatus } from '@/types/timer';
 
 export interface PersistedTimerState {
   status: TimerStatus;
-  startTimestamp: number | null;
-  accumulatedTime: number;
+  segments: TimeSegment[];
   lastUpdated: number;
 }
 

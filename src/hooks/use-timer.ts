@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { useTimerContext, type TimerStatus } from '@/contexts/timer-context';
+import { useTimerContext, type TimerStatus, type TimeSegment } from '@/contexts/timer-context';
 import { formatTime } from '@/lib/utils';
 
 interface TimerCallbacks {
@@ -11,6 +11,7 @@ interface TimerCallbacks {
 interface UseTimerReturn {
   elapsedTime: number;
   status: TimerStatus;
+  segments: TimeSegment[];
   formattedTime: string;
   hours: number;
   minutes: number;
@@ -58,6 +59,7 @@ export function useTimer(callbacks?: TimerCallbacks): UseTimerReturn {
   return {
     elapsedTime: context.elapsedTime,
     status: context.status,
+    segments: context.segments,
     formattedTime,
     hours,
     minutes,

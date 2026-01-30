@@ -32,7 +32,8 @@ export function useTaskHistory(taskId: TaskId): UseTaskHistoryReturn {
     const groupMap = new Map<string, HistoryEntry[]>();
 
     for (const entry of rawEntries) {
-      const dateKey = getDateKey(entry.savedAt);
+      // Group by startedAt date (when the work segment started)
+      const dateKey = getDateKey(entry.startedAt);
       const existing = groupMap.get(dateKey) ?? [];
       groupMap.set(dateKey, [...existing, entry]);
     }
@@ -45,17 +46,18 @@ export function useTaskHistory(taskId: TaskId): UseTaskHistoryReturn {
       const entries = groupMap.get(date) ?? [];
       const totalDuration = entries.reduce((sum, e) => sum + e.duration, 0);
 
+      // Sort by startedAt (newest first)
       const sortedEntries = [...entries].sort((a, b) =>
-        b.savedAt.localeCompare(a.savedAt)
+        b.startedAt.localeCompare(a.startedAt)
       );
 
       return {
         date,
-        dateLabel: formatDate(sortedEntries[0].savedAt),
+        dateLabel: formatDate(sortedEntries[0].startedAt),
         entries: sortedEntries.map((entry) => ({
           ...entry,
           formattedDuration: formatTime(entry.duration),
-          formattedTime: formatTimeShort(entry.savedAt),
+          formattedTime: formatTimeShort(entry.startedAt),
         })),
         totalDuration,
         formattedTotalDuration: formatTime(totalDuration),

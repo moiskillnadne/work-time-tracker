@@ -1,5 +1,7 @@
 import type { TaskId } from '@/types/task';
 import type { HistoryEntry } from '@/types/history';
+import type { TimeSegment } from '@/types/timer';
+import { splitSegmentsByDay } from '@/lib/utils';
 
 export interface PersistedHistoryState {
   entries: HistoryEntry[];
@@ -43,20 +45,32 @@ export function clearHistoryState(): void {
   }
 }
 
-export function addHistoryEntry(taskId: TaskId, duration: number): HistoryEntry {
-  const entry: HistoryEntry = {
+/**
+ * Creates history entries from time segments, splitting across day boundaries
+ * Multiple segments on the same day are aggregated into a single entry
+ */
+export function addHistoryEntriesFromSegments(
+  taskId: TaskId,
+  segments: TimeSegment[]
+): HistoryEntry[] {
+  const daySplits = splitSegmentsByDay(segments);
+  const savedAt = new Date().toISOString();
+
+  const newEntries: HistoryEntry[] = daySplits.map((split) => ({
     id: crypto.randomUUID(),
     taskId,
-    duration,
-    savedAt: new Date().toISOString(),
-  };
+    duration: split.duration,
+    startedAt: split.startedAt,
+    savedAt,
+  }));
 
   const current = loadHistoryState();
-  const entries = current?.entries ?? [];
+  const existingEntries = current?.entries ?? [];
 
-  saveHistoryState({ entries: [entry, ...entries] });
+  // Prepend new entries (newest first)
+  saveHistoryState({ entries: [...newEntries, ...existingEntries] });
 
-  return entry;
+  return newEntries;
 }
 
 export function deleteTaskHistory(taskId: TaskId): void {
