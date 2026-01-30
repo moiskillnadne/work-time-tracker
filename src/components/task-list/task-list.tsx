@@ -21,7 +21,7 @@ export function TaskList({
   onTaskSelect,
   isTimerActive = false,
 }: TaskListProps): React.ReactNode {
-  const { tasks, selectedTaskId, selectTask, isEmpty } = useTaskList({
+  const { tasks, selectedTaskId, selectTask, deleteTask, isEmpty } = useTaskList({
     onTaskSelected: onTaskSelect,
   });
 
@@ -32,6 +32,15 @@ export function TaskList({
     }
     const newSelectedId = selectedTaskId === taskId ? null : taskId;
     selectTask(newSelectedId);
+  };
+
+  const handleTaskRemove = (taskId: TaskId): void => {
+    deleteTask(taskId);
+    toast.success('Task removed');
+  };
+
+  const isMenuDisabledForTask = (taskId: TaskId): boolean => {
+    return isTimerActive && selectedTaskId === taskId;
   };
 
   return (
@@ -62,10 +71,13 @@ export function TaskList({
           {tasks.map((task) => (
             <TaskCard
               key={task.id}
+              taskId={task.id}
               title={task.title}
               spentTime={task.formattedTime}
               isSelected={selectedTaskId === task.id}
+              isMenuDisabled={isMenuDisabledForTask(task.id)}
               onClick={() => handleTaskClick(task.id)}
+              onRemove={handleTaskRemove}
               role="listitem"
             />
           ))}
