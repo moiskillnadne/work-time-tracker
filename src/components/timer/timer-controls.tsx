@@ -1,4 +1,4 @@
-import { Pause, Play, RotateCcw, Square } from 'lucide-react';
+import { Pause, Play, Save, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useTimer } from '@/hooks/use-timer';
@@ -7,11 +7,12 @@ interface TimerControlsCallbacks {
   onStart?: () => void;
   onPause?: () => void;
   onStop?: () => void;
-  onReset?: () => void;
+  onSaveAndReset?: () => void;
 }
 
 interface TimerControlsProps extends TimerControlsCallbacks {
   className?: string;
+  isTaskSelected?: boolean;
 }
 
 export function TimerControls({
@@ -19,13 +20,13 @@ export function TimerControls({
   onStart,
   onPause,
   onStop,
-  onReset,
+  onSaveAndReset,
+  isTaskSelected = false,
 }: TimerControlsProps): React.ReactNode {
   const { start, pause, stop, reset, isRunning, isIdle, isStopped } = useTimer({
     onStart,
     onPause,
     onStop,
-    onReset,
   });
 
   const handleStartPause = (): void => {
@@ -47,10 +48,11 @@ export function TimerControls({
     >
       <Button
         onClick={handleStartPause}
-        variant={isRunning ? 'outline' : 'outline'}
+        variant="outline"
         size="lg"
         className="min-w-24 sm:min-w-28 "
         aria-label={isRunning ? 'Pause timer' : 'Start timer'}
+        disabled={!isTaskSelected && isIdle}
       >
         {isRunning ? (
           <>
@@ -81,14 +83,17 @@ export function TimerControls({
 
       {isStopped && (
         <Button
-          onClick={reset}
+          onClick={() => {
+            onSaveAndReset?.();
+            reset();
+          }}
           variant="outline"
           size="lg"
           className="min-w-24 sm:min-w-28"
-          aria-label="Reset timer"
+          aria-label="Save and reset timer"
         >
-          <RotateCcw className="size-4 sm:size-5" />
-          <span>Reset</span>
+          <Save className="size-4 sm:size-5" />
+          <span>Save & Reset</span>
         </Button>
       )}
     </div>

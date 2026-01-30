@@ -3,26 +3,20 @@ import { Timer } from './components/timer'
 import { TaskList } from './components/task-list';
 import { AppLayout } from './components/layout';
 import { TaskNameModal, type TaskNameModalPayload } from './components/ui/task-name-modal';
-import { useTaskListContext } from './contexts/task-list-context';
+import { useTaskList } from './hooks/use-task-list';
+import { useTimer } from './hooks/use-timer';
 
 function App() {
-  const { addTask } = useTaskListContext();
+  const { addTask, selectedTaskId, hasSelectedTask, incrementTaskTime } = useTaskList();
+  const { elapsedTime, isIdle } = useTimer();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const handleStart = (): void => {
-    console.log('Timer started');
-  };
+  const isTimerActive = !isIdle;
 
-  const handlePause = (): void => {
-    console.log('Timer paused');
-  };
-
-  const handleStop = (): void => {
-    console.log('Timer stopped');
-  };
-
-  const handleReset = (): void => {
-    console.log('Timer reset');
+  const handleSaveAndReset = (): void => {
+    if (selectedTaskId && elapsedTime > 0) {
+      incrementTaskTime(selectedTaskId, elapsedTime);
+    }
   };
 
   const handleAddClick = (): void => {
@@ -43,13 +37,11 @@ function App() {
       <AppLayout
         timer={
           <Timer
-            onStart={handleStart}
-            onPause={handlePause}
-            onStop={handleStop}
-            onReset={handleReset}
+            isTaskSelected={hasSelectedTask}
+            onSaveAndReset={handleSaveAndReset}
           />
         }
-        taskList={<TaskList onAddClick={handleAddClick} />}
+        taskList={<TaskList onAddClick={handleAddClick} isTimerActive={isTimerActive} />}
       />
       <TaskNameModal
         isOpen={isAddModalOpen}

@@ -5,19 +5,21 @@ import { TimerControls } from './timer-controls';
 interface TimerProps {
   className?: string;
   showControls?: boolean;
+  isTaskSelected?: boolean;
   onStart?: () => void;
   onPause?: () => void;
   onStop?: () => void;
-  onReset?: () => void;
+  onSaveAndReset?: () => void;
 }
 
 export function Timer({
   className,
   showControls = true,
+  isTaskSelected = false,
   onStart,
   onPause,
   onStop,
-  onReset,
+  onSaveAndReset,
 }: TimerProps): React.ReactNode {
   return (
     <div
@@ -33,10 +35,11 @@ export function Timer({
       <TimerDisplay />
       {showControls && (
         <TimerControls
+          isTaskSelected={isTaskSelected}
           onStart={onStart}
           onPause={onPause}
           onStop={onStop}
-          onReset={onReset}
+          onSaveAndReset={onSaveAndReset}
         />
       )}
     </div>

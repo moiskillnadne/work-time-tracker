@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { TaskCard } from '@/components/ui/task-card';
 import { AddTaskButton } from './add-task-button';
@@ -11,18 +12,24 @@ interface TaskListCallbacks {
 
 interface TaskListProps extends TaskListCallbacks {
   className?: string;
+  isTimerActive?: boolean;
 }
 
 export function TaskList({
   className,
   onAddClick,
   onTaskSelect,
+  isTimerActive = false,
 }: TaskListProps): React.ReactNode {
   const { tasks, selectedTaskId, selectTask, isEmpty } = useTaskList({
     onTaskSelected: onTaskSelect,
   });
 
   const handleTaskClick = (taskId: TaskId): void => {
+    if (isTimerActive) {
+      toast.warning('Stop the timer before changing tasks');
+      return;
+    }
     const newSelectedId = selectedTaskId === taskId ? null : taskId;
     selectTask(newSelectedId);
   };
