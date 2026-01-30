@@ -5,7 +5,6 @@ import { formatTime } from '@/lib/utils';
 interface TimerCallbacks {
   onStart?: () => void;
   onPause?: () => void;
-  onStop?: () => void;
   onReset?: () => void;
 }
 
@@ -18,11 +17,9 @@ interface UseTimerReturn {
   seconds: number;
   start: () => void;
   pause: () => void;
-  stop: () => void;
   reset: () => void;
   isRunning: boolean;
   isPaused: boolean;
-  isStopped: boolean;
   isIdle: boolean;
 }
 
@@ -53,11 +50,6 @@ export function useTimer(callbacks?: TimerCallbacks): UseTimerReturn {
     callbacks?.onPause?.();
   }, [context, callbacks]);
 
-  const stop = useCallback((): void => {
-    context.stop();
-    callbacks?.onStop?.();
-  }, [context, callbacks]);
-
   const reset = useCallback((): void => {
     context.reset();
     callbacks?.onReset?.();
@@ -72,11 +64,9 @@ export function useTimer(callbacks?: TimerCallbacks): UseTimerReturn {
     seconds,
     start,
     pause,
-    stop,
     reset,
     isRunning: context.isRunning,
     isPaused: context.isPaused,
-    isStopped: context.isStopped,
     isIdle: context.isIdle,
   };
 }

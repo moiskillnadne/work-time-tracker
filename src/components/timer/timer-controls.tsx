@@ -1,4 +1,4 @@
-import { Pause, Play, Save, Square } from 'lucide-react';
+import { Pause, Play, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useTimer } from '@/hooks/use-timer';
@@ -6,7 +6,6 @@ import { useTimer } from '@/hooks/use-timer';
 interface TimerControlsCallbacks {
   onStart?: () => void;
   onPause?: () => void;
-  onStop?: () => void;
   onSaveAndReset?: () => void;
 }
 
@@ -19,14 +18,12 @@ export function TimerControls({
   className,
   onStart,
   onPause,
-  onStop,
   onSaveAndReset,
   isTaskSelected = false,
 }: TimerControlsProps): React.ReactNode {
-  const { start, pause, stop, reset, isRunning, isIdle, isStopped } = useTimer({
+  const { start, pause, reset, isRunning, isIdle } = useTimer({
     onStart,
     onPause,
-    onStop,
   });
 
   const handleStartPause = (): void => {
@@ -68,20 +65,6 @@ export function TimerControls({
       </Button>
 
       {!isIdle && (
-        <Button
-          onClick={stop}
-          variant="outline"
-          size="lg"
-          className="min-w-24 sm:min-w-28"
-          aria-label="Stop timer"
-          disabled={isStopped}
-        >
-          <Square className="size-4 sm:size-5" />
-          <span>Stop</span>
-        </Button>
-      )}
-
-      {isStopped && (
         <Button
           onClick={() => {
             onSaveAndReset?.();

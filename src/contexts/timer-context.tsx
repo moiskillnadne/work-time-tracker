@@ -29,11 +29,9 @@ interface TimerContextValue {
   elapsedTime: number;
   start: () => void;
   pause: () => void;
-  stop: () => void;
   reset: () => void;
   isRunning: boolean;
   isPaused: boolean;
-  isStopped: boolean;
   isIdle: boolean;
 }
 
@@ -114,23 +112,6 @@ export function TimerProvider({ children }: TimerProviderProps): ReactNode {
     });
   }, [persistState]);
 
-  const stop = useCallback((): void => {
-    setState((prev) => {
-      if (prev.status === 'idle') {
-        return prev;
-      }
-
-      const currentElapsed = calculateElapsedTime(prev);
-      const newState: TimerState = {
-        status: 'stopped',
-        startTimestamp: null,
-        accumulatedTime: currentElapsed,
-      };
-      persistState(newState);
-      return newState;
-    });
-  }, [persistState]);
-
   const reset = useCallback((): void => {
     const newState: TimerState = {
       status: 'idle',
@@ -194,14 +175,12 @@ export function TimerProvider({ children }: TimerProviderProps): ReactNode {
       elapsedTime,
       start,
       pause,
-      stop,
       reset,
       isRunning: state.status === 'running',
       isPaused: state.status === 'paused',
-      isStopped: state.status === 'stopped',
       isIdle: state.status === 'idle',
     }),
-    [state.status, elapsedTime, start, pause, stop, reset]
+    [state.status, elapsedTime, start, pause, reset]
   );
 
   return <TimerContext.Provider value={contextValue}>{children}</TimerContext.Provider>;

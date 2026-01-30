@@ -1,4 +1,4 @@
-export type TimerStatus = 'idle' | 'running' | 'paused' | 'stopped';
+export type TimerStatus = 'idle' | 'running' | 'paused';
 
 export interface PersistedTimerState {
   status: TimerStatus;

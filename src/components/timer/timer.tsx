@@ -8,7 +8,6 @@ interface TimerProps {
   isTaskSelected?: boolean;
   onStart?: () => void;
   onPause?: () => void;
-  onStop?: () => void;
   onSaveAndReset?: () => void;
 }
 
@@ -18,7 +17,6 @@ export function Timer({
   isTaskSelected = false,
   onStart,
   onPause,
-  onStop,
   onSaveAndReset,
 }: TimerProps): React.ReactNode {
   return (
@@ -38,7 +36,6 @@ export function Timer({
           isTaskSelected={isTaskSelected}
           onStart={onStart}
           onPause={onPause}
-          onStop={onStop}
           onSaveAndReset={onSaveAndReset}
         />
       )}
