@@ -1,5 +1,6 @@
 import { Timer } from './components/timer'
 import { TaskList } from './components/task-list';
+import { AppLayout } from './components/layout';
 
 function App() {
   const handleStart = (): void => {
@@ -23,18 +24,17 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 gap-8">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
-        Work Time Tracker
-      </h1>
-      <Timer
-        onStart={handleStart}
-        onPause={handlePause}
-        onStop={handleStop}
-        onReset={handleReset}
-      />
-      <TaskList onAddClick={handleAddClick} />
-    </div>
+    <AppLayout
+      timer={
+        <Timer
+          onStart={handleStart}
+          onPause={handlePause}
+          onStop={handleStop}
+          onReset={handleReset}
+        />
+      }
+      taskList={<TaskList onAddClick={handleAddClick} />}
+    />
   );
 }
 
