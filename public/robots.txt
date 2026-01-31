@@ -1,0 +1,7 @@
+# robots.txt for time-tracker.riabkov.com
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://time-tracker.riabkov.com/sitemap.xml
