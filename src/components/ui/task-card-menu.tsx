@@ -1,11 +1,13 @@
 import * as React from "react";
-import { MoreVertical, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router";
+import { MoreVertical, Trash2, History } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RemoveTaskDialog } from "@/components/ui/remove-task-dialog";
@@ -22,6 +24,7 @@ function TaskCardMenu({
   isDisabled = false,
   onRemove,
 }: TaskCardMenuProps): React.ReactNode {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const handleTriggerClick = (event: React.MouseEvent): void => {
@@ -30,6 +33,10 @@ function TaskCardMenu({
 
   const handleTriggerKeyDown = (event: React.KeyboardEvent): void => {
     event.stopPropagation();
+  };
+
+  const handleHistoryClick = (): void => {
+    navigate(`/history/${taskId}`);
   };
 
   const handleRemoveClick = (): void => {
@@ -62,6 +69,11 @@ function TaskCardMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={handleHistoryClick}>
+            <History />
+            History
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={handleRemoveClick}>
             <Trash2 />
             Remove

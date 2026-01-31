@@ -13,6 +13,11 @@ import {
   clearTaskListState,
   type PersistedTaskListState,
 } from '@/lib/task-storage';
+import {
+  addHistoryEntry,
+  deleteTaskHistory,
+  clearHistoryState,
+} from '@/lib/history-storage';
 
 interface TaskListState {
   tasks: Task[];
@@ -119,6 +124,8 @@ export function TaskListProvider({ children }: TaskListProviderProps): ReactNode
   }, [persistState]);
 
   const deleteTask = useCallback((id: TaskId): void => {
+    deleteTaskHistory(id);
+
     setState((prev) => {
       const newTasks = prev.tasks.filter((t) => t.id !== id);
       const newSelectedId = prev.selectedTaskId === id ? null : prev.selectedTaskId;
@@ -148,6 +155,8 @@ export function TaskListProvider({ children }: TaskListProviderProps): ReactNode
   }, [persistState]);
 
   const incrementTaskTime = useCallback((id: TaskId, milliseconds: number): void => {
+    addHistoryEntry(id, milliseconds);
+
     setState((prev) => {
       const taskIndex = prev.tasks.findIndex((t) => t.id === id);
       if (taskIndex === -1) {
@@ -179,6 +188,7 @@ export function TaskListProvider({ children }: TaskListProviderProps): ReactNode
     };
     setState(newState);
     clearTaskListState();
+    clearHistoryState();
   }, []);
 
   const selectedTask = useMemo(
