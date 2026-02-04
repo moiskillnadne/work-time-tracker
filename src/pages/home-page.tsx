@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Timer } from '@/components/timer';
+import { Timer, TimerTitle } from '@/components/timer';
 import { TaskList } from '@/components/task-list';
 import { AppLayout } from '@/components/layout';
 import { TaskNameModal, type TaskNameModalPayload } from '@/components/ui/task-name-modal';
@@ -41,6 +41,7 @@ export function HomePage() {
 
   return (
     <>
+      <TimerTitle />
       <AppLayout
         timer={
           <Timer
